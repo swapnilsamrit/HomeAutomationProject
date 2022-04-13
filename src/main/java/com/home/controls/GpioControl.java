@@ -10,6 +10,6 @@ public class GpioControl {
     SprinklerScheduler s = new SprinklerScheduler();
 
     public void startSprinkler() {
-        t.schedule(s, 2000, 180*100*100);
+        t.schedule(s, 2000, 360*100*100);
     }
 }
