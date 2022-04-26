@@ -40,8 +40,8 @@ public class SprinklerScheduler extends TimerTask {
             logger.info("Turn On SPRINKLER: " + LocalTime.now());
             sprinkler.turnOn17sh();
             //System.out.println("Sleeping for sec " + 5000);
-            logger.info("Sleeping for sec " + 50000);
-            Thread.sleep(50000);
+            logger.info("Sleeping for sec " + 25000);
+            Thread.sleep(25000);
             sprinkler.turnOff17sh();
             logger.info("Turn Off SPRINKLER " + LocalTime.now());
         } catch (InterruptedException e) {
