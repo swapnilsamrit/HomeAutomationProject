@@ -1,11 +1,14 @@
 package com.home.sprinkler;
 
 
+import org.springframework.stereotype.Component;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class SprinklerImpl {
+@Component
+public class SprinklerImpl implements SprinklerService {
 
     public void turnOn17sh() {
         System.out.println("run turnOn17sh");

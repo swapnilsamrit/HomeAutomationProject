@@ -1,8 +1,8 @@
 package com.home.cloud;
 
+import com.weatherpojo.WeatherEntity;
+
 public interface CloudService {
-    public void sendMessage();
-    public void connect();
-    public void disconnect();
-    public void receiveMessage();
+    WeatherEntity getCurrentWeatherData();
+    WeatherEntity getForecastData();
 }

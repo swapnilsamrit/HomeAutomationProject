@@ -10,7 +10,6 @@ public class Mapper {
     private Map<String, Pin> raspiPinMap = new HashMap<String, Pin>();
 
     private void setMap() {
-        raspiPinMap.put(Constant.SPRINKLER_GPIO, RaspiPin.GPIO_17);
     }
 
     public void getMapped(String s) {
