@@ -5,5 +5,5 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 public interface Gpiocontrols {
     void control() throws JsonProcessingException, AWSIotException;
-    void runSprinkler();
+    void runSprinkler() throws JsonProcessingException, AWSIotException;
 }

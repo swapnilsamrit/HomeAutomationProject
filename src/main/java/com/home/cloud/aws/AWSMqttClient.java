@@ -19,13 +19,13 @@ public class AWSMqttClient implements SprinklerMqttService {
     @Override
     public void publish(String topic, String payload) throws AWSIotException {
         client.publish(topic, payload);
-        logger.info("publish? " + client.getConnectionStatus());
     }
 
     @Override
     public void connection() {
         SampleUtil.KeyStorePasswordPair pair = SampleUtil.getKeyStorePasswordPair(config.certificateFile, config.privateKeyFile);
         client = new AWSIotMqttClient(config.clientEndpoint, config.clientId, pair.keyStore, pair.keyPassword);
+        //connectionI();
     }
 
     @Override
@@ -42,6 +42,7 @@ public class AWSMqttClient implements SprinklerMqttService {
     @Override
     public void subscribe(String topic) throws AWSIotException {
         client.subscribe(new SprinklerTopic(topic));
+        logger.info("Subscribed to Topic: "+topic);
     }
 
     @Override
@@ -52,7 +53,7 @@ public class AWSMqttClient implements SprinklerMqttService {
    // @Override
     public void connectionI() {
         String clientEndpoint = "a2nj8eajtz4tdu-ats.iot.us-east-1.amazonaws.com";//"<prefix>-ats.iot.<region>.amazonaws.com";
-        String clientId = "awsClient_sprinkler";                              // replace with your own client ID. Use unique client IDs for concurrent connections.
+        String clientId = "awsClient_sprinklerm";                              // replace with your own client ID. Use unique client IDs for concurrent connections.
         String certificateFile = "src/main/resources/aws/074e5f19d9c41bb640c9e87fdeef3da037cd10171af08f0812bfb1918da58331-certificate.pem.crt";                       // X.509 based certificate file
         String privateKeyFile = "src/main/resources/aws/074e5f19d9c41bb640c9e87fdeef3da037cd10171af08f0812bfb1918da58331-private.pem.key";                        // PKCS#1 or PKCS#8 PEM encoded private key file
 

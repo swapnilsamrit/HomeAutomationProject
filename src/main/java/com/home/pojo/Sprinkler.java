@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class Sprinkler {
-    private String temperature;
+    private Double temperature;
     private Double precipitation;
     private String weatherStatus;
     private String timeStamp;

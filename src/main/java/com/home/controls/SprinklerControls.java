@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.net.InetAddress;
 import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Date;
@@ -48,7 +49,7 @@ public class SprinklerControls implements Gpiocontrols {
     @Override
     public void control() throws JsonProcessingException, AWSIotException {
 
-        while (true) {
+       /* while (true) {
             if (getHour() >= config.getMorningTime() && getHour() <= config.getEveningTime()) {
                 // System.out.println("TIME------");
                 //run once in 2 hour till 1 pm
@@ -59,7 +60,7 @@ public class SprinklerControls implements Gpiocontrols {
                         this.sprinkler = new Sprinkler();
 
                         if (checkWeatherStatus()) {
-                            logger.info("Get Hours Before 1 PM " + getHour());
+                            logger.info(" Before 1 PM " + LocalTime.now());
                             startSprinkler();
                             logger.info(Constants.PUBLISH_DEVICE + " Before 1PM, Data publish to cloud at " + objectMapper.writeValueAsString(getPayload(lastTimeStamp)));
                             lastTimeStamp = LocalTime.now().toString();
@@ -69,7 +70,7 @@ public class SprinklerControls implements Gpiocontrols {
 
                     if (getHour() >= config.getHourlyTime()) {
                         if (checkWeatherStatus()) {
-                            logger.info("Get Hours at after 1 PM " + getHour());
+                            logger.info("After 1 PM " + LocalTime.now());
                             startSprinkler();
                             logger.info(Constants.PUBLISH_DEVICE + " After 1 PM Data publish to cloud at " + objectMapper.writeValueAsString(getPayload(lastTimeStamp)));
                             lastTimeStamp = LocalTime.now().toString();
@@ -78,7 +79,7 @@ public class SprinklerControls implements Gpiocontrols {
                     }
                 }
             }
-        }
+        }*/
     }
 
     private void startSprinkler() {
@@ -91,6 +92,7 @@ public class SprinklerControls implements Gpiocontrols {
         sprinkler.setPrecipitation(weather.getCurrent().getPrecipMm());
         sprinkler.setLastRun(lastTimeStamp);
         sprinkler.setTimeStamp(new Date().toString());
+        sprinkler.setTemperature(weather.getCurrent().getTempC());
         sprinkler.setWeather(weather);
         return sprinkler;
     }
@@ -143,72 +145,52 @@ public class SprinklerControls implements Gpiocontrols {
     }
 
     @Scheduled(cron = "0 * * * * *")
-    public void runSprinkler() {
-        logger.info("-Current time is :: " + Calendar.getInstance().getTime());
+    public void runSprinkler() throws JsonProcessingException, AWSIotException {
         if (getHour() >= config.getMorningTime() && getHour() <= config.getEveningTime()) {
+            // checkPing();
             //run once in 2 hr
             //check time in minute
-            if (getHour() <= config.getHourlyTime() && getHour() % 2 == 0) {
+            if (getHour() < config.getHourlyTime() && getHour() % 2 == 0) {
                 if (getMinute() == config.getMinutes()) {
-                    //run
-                    logger.info("publish to cloud at " + LocalTime.now());
+                    mqttService.publish(Constants.PUBLISH_DEVICE.trim().toString(), "Before Welcome at " + Calendar.getInstance().getTime());
+                    logger.info("Ready publish to cloud at!!! " + LocalTime.now());
                     this.sprinkler = new Sprinkler();
+                    if (checkWeatherStatus()) {
+                        logger.info("Before 1 PM, Current time " + Calendar.getInstance().getTime());
+                        logger.info("is Mqtt connection status " + mqttService.getConnectionStatus());
+                        mqttService.publish(Constants.PUBLISH_DEVICE, objectMapper.writeValueAsString(getPayload(this.lastTimeStamp)));
+                        startSprinkler();
+                        logger.info(" Before 1PM, Data publish to cloud at " + Constants.PUBLISH_DEVICE);
+                        lastTimeStamp = LocalTime.now().toString();
+                    }
+                }
+            }
+        }
+        if (getHour() >= config.getHourlyTime() && getHour() <= config.getEveningTime()) {
+            //run every hour
+            if (getMinute() == config.getMinutes()) {
+                this.sprinkler = new Sprinkler();
+                mqttService.publish(Constants.PUBLISH_DEVICE.trim().toString(), "After Welcome at " + Calendar.getInstance().getTime());
+                if (checkWeatherStatus()) {
+                    logger.info("After 1 PM,Current Time " + Calendar.getInstance().getTime());
+                    logger.info("is Mqtt connection status " + mqttService.getConnectionStatus());
+                    mqttService.publish(Constants.PUBLISH_DEVICE, objectMapper.writeValueAsString(getPayload(this.lastTimeStamp)));
+                    startSprinkler();
+                    logger.info(" After 1 PM Data publish to cloud at " + Constants.PUBLISH_DEVICE);
+                    lastTimeStamp = LocalTime.now().toString();
+                }
+            }
+        }
+    }
 
-                    if (checkWeatherStatus()) {
-                        logger.info("Before 1 PM, Current time " +   Calendar.getInstance().getTime());
-                        try {
-                            startSprinkler();
-                            logger.info("is Mqtt connection status " + mqttService.getConnectionStatus());
-                            mqttService.publish(Constants.PUBLISH_DEVICE, objectMapper.writeValueAsString(getPayload(lastTimeStamp)));
-                            logger.info("After publish is Mqtt connection status " + mqttService.getConnectionStatus());
-                        } catch (AWSIotException e) {
-                            logger.error("error: " + e);
-                            throw new RuntimeException(e);
-                        } catch (JsonProcessingException e) {
-                            logger.error("error: " + e);
-                            throw new RuntimeException(e);
-                        }
-                        try {
-                            logger.info(Constants.PUBLISH_DEVICE + " Before 1PM, Data publish to cloud at " + objectMapper.writeValueAsString(getPayload(lastTimeStamp)));
-                        } catch (JsonProcessingException e) {
-                            logger.error("error: " + e);
-                            throw new RuntimeException(e);
-                        }
-                        lastTimeStamp = LocalTime.now().toString();
-                        sleepUtil(55000);
-                    }
-                }
-            }
-            if (getHour() > config.getHourlyTime() && getHour() <= config.getEveningTime()) {
-                //run every hour
-                if (getMinute() == config.getMinutes()) {
-                    this.sprinkler = new Sprinkler();
-                    //run
-                    if (checkWeatherStatus()) {
-                        logger.info("After 1 PM,Current Time " +   Calendar.getInstance().getTime());
-                        try {
-                            startSprinkler();
-                            logger.info("is Mqtt connection status " + mqttService.getConnectionStatus());
-                            mqttService.publish(Constants.PUBLISH_DEVICE, objectMapper.writeValueAsString(getPayload(lastTimeStamp)));
-                            logger.info("After publish is Mqtt connection status " + mqttService.getConnectionStatus());
-                        } catch (AWSIotException e) {
-                            logger.error("error: " + e);
-                            throw new RuntimeException(e);
-                        } catch (JsonProcessingException e) {
-                            logger.error("error: " + e);
-                            throw new RuntimeException(e);
-                        }
-                        try {
-                            logger.info(Constants.PUBLISH_DEVICE + " After 1 PM Data publish to cloud at " + objectMapper.writeValueAsString(getPayload(lastTimeStamp)));
-                        } catch (JsonProcessingException e) {
-                            logger.error("error: " + e);
-                            throw new RuntimeException(e);
-                        }
-                        lastTimeStamp = LocalTime.now().toString();
-                        sleepUtil(55000);
-                    }
-                }
-            }
+    private void checkPing() {
+        try {
+            InetAddress address = InetAddress.getByName("www.google.com");
+            boolean reachable = address.isReachable(10000);
+
+            System.out.println("Is host reachable? " + reachable);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

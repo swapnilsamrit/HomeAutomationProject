@@ -34,6 +34,8 @@ public class BootStrapImpl implements BootStrapService {
         mqttService.connection();
         try {
             mqttService.connect();
+            mqttService.subscribe(Constants.PUBLISH_DEVICE);
+            mqttService.subscribe(Constants.PUBLISH_DEVICE_WELCOME);
             logger.info("AWS MQTT connection is ready!");
             return true;
         } catch (AWSIotException e) {
@@ -47,7 +49,15 @@ public class BootStrapImpl implements BootStrapService {
         logger.info("Create MQTT connection");
          initMqtt();
         // gpiocontrols.control();
-        gpiocontrols.runSprinkler();
+        try {
+            gpiocontrols.runSprinkler();
+        } catch (JsonProcessingException e) {
+            logger.error("Ex: "+e);
+            throw new RuntimeException(e);
+        } catch (AWSIotException e) {
+            logger.error("Ex: "+e);
+            throw new RuntimeException(e);
+        }
     }
 
 
